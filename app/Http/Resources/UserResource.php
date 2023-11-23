@@ -16,9 +16,9 @@ class UserResource extends ResourceCollection
     public function toArray(Request $request): array
     {
         return  [
-            'id' => $this->id,
-            'username' => $this->username,
-            'name' => $this->name
+            'id' => $request->id,
+            'username' => $request->username,
+            'name' => $request->name
         ];
     }
 }
