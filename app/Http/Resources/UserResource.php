@@ -18,7 +18,8 @@ class UserResource extends ResourceCollection
         return  [
             'id' => $request->id,
             'username' => $request->username,
-            'name' => $request->name
+            'name' => $request->name,
+            'token' => $this->whenNotNull($request->token)
         ];
     }
 }

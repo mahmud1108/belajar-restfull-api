@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Database\Seeders\UserSeeder;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class UserTest extends TestCase
@@ -53,7 +56,7 @@ class UserTest extends TestCase
             );
     }
 
-    public function testRegisterAlreadyExist()
+    public function testRegisterUsernameAlreadyExist()
     {
         $this->testRegisterSuccess();
 
@@ -74,5 +77,45 @@ class UserTest extends TestCase
                     ]
                 ]
             );
+    }
+
+    public function testloginSuccess()
+    {
+        $user = new User;
+        $user->username = 'admin';
+        $user->password = Hash::make('admin');
+        $user->name = 'admin';
+        $user->save();
+
+        $this->post('api/users/login', [
+            'username' => 'admin',
+            'password' => 'admin'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'username' => 'admin',
+                    'name' => null
+                ]
+            ]);
+
+        $user_exist = User::where('username', 'admin')->first();
+
+        // untuk memastikan token telah tersedia
+        self::assertNotNull($user_exist->token);
+    }
+
+    public function testLoginUsernameNotFound()
+    {
+        $this->post('/api/users/login', [
+            'username' => 'admin',
+            'password' => 'admin'
+        ])->assertStatus(401)
+            ->assertJson([
+                'errors' => [
+                    'message' => [
+                        'username or password wrong.'
+                    ]
+                ]
+            ]);
     }
 }
