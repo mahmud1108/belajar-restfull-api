@@ -81,25 +81,20 @@ class UserTest extends TestCase
 
     public function testloginSuccess()
     {
-        $user = new User;
-        $user->username = 'admin';
-        $user->password = Hash::make('admin');
-        $user->name = 'admin';
-        $user->save();
+        $this->seed(UserSeeder::class);
 
         $this->post('api/users/login', [
             'username' => 'admin',
-            'password' => 'admin'
+            'password' => 'admin',
         ])->assertStatus(200)
             ->assertJson([
                 'data' => [
                     'username' => 'admin',
-                    'name' => null
+                    'name' => 'admin'
                 ]
             ]);
 
         $user_exist = User::where('username', 'admin')->first();
-
         // untuk memastikan token telah tersedia
         self::assertNotNull($user_exist->token);
     }
@@ -115,6 +110,21 @@ class UserTest extends TestCase
                     'message' => [
                         'username or password wrong.'
                     ]
+                ]
+            ]);
+    }
+
+    public function testGetUserSuccess()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->get('/api/user/current', [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'username' => 'admin',
+                    'name' => 'admin',
                 ]
             ]);
     }

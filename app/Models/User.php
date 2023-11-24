@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class User extends Model
+class User extends AuthUser
 {
     use HasFactory;
 
-    protected $guarded = 'id';
+    protected $fillable = [
+        'name',
+        'username',
+        'password'
+    ];
 
     public function contact()
     {
