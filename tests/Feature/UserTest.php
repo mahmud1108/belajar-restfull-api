@@ -10,6 +10,7 @@ use Tests\TestCase;
 
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
+use function PHPUnit\Framework\assertNull;
 
 class UserTest extends TestCase
 {
@@ -155,6 +156,115 @@ class UserTest extends TestCase
         $this->get('/api/user/current', [
             'Authorized' => 'token salah'
         ])->assertStatus(401)
+            ->assertJson([
+                'errors' => [
+                    'message' => [
+                        'Unauthorized'
+                    ]
+                ]
+            ]);
+    }
+
+    public function testUpdatePasswordSuccess()
+    {
+        $this->seed(UserSeeder::class);
+        $old_user = User::where('username', 'admin')->first();
+        $this->patch(
+            '/api/user/current',
+            [
+                'password' => 'password'
+            ],
+            [
+                'Authorization' => 'admin'
+            ]
+        )->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'username' => 'admin',
+                    'name' => 'admin'
+                ]
+            ]);
+
+        $new_user = User::where('username', 'admin')->first();
+
+        // digunakan untuk mengecek password apakah old dengan new password masih sama, jika sudah berbeda maka benar
+        self::assertNotEquals($old_user->password, $new_user->password);
+    }
+
+    public function testUpdateNameSuccess()
+    {
+        $this->seed(UserSeeder::class);
+        $old = User::where('username', 'admin')->first();
+
+        $this->patch(
+            '/api/user/current',
+            [
+                'name' => 'nama baru'
+            ],
+            [
+                'Authorization' => 'admin'
+            ]
+        )->assertStatus(200)
+            ->assertJson(
+                [
+                    'data' => [
+                        'username' => 'admin',
+                        'name' => 'nama baru'
+                    ]
+                ]
+            );
+
+        $new = User::where('username', 'admin')->first();
+        self::assertNotEquals($old->name, $new->name);
+    }
+
+    public function testUpdateFailed()
+    {
+        $this->seed(UserSeeder::class);
+        $this->patch(
+            '/api/user/current',
+            [
+                'name' => 'as'
+            ],
+            [
+                'Authorization' => 'admin'
+            ]
+        )->assertStatus(200)
+            ->assertJson(
+                [
+                    'errors' => [
+                        'name' => [
+                            "The name field must be at least 4 characters."
+                        ]
+                    ]
+                ]
+            );
+    }
+
+    public function testUserLogout()
+    {
+        $this->seed(UserSeeder::class);
+        $this->delete('/api/user/logout', [], [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->assertJson([
+                'data' => true
+            ]);
+
+        $user = User::where('username', 'admin')->first();
+        $this->assertNull($user->token);
+    }
+
+    public function testLogoutFailed()
+    {
+        $this->seed(UserSeeder::class);
+        $this->delete(
+            '/api/user/logout',
+            [],
+            [
+                "Authorization" => 'salah token'
+            ]
+        )->assertStatus(401)
             ->assertJson([
                 'errors' => [
                     'message' => [
