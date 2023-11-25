@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -35,7 +36,7 @@ class UserController extends Controller
         return (new UserResource($user))->response()->setStatusCode(201);
     }
 
-    public function login(UserLoginRequest $request): UserResource  
+    public function login(UserLoginRequest $request): UserResource
     {
         $data = $request->validated();
 
@@ -54,6 +55,13 @@ class UserController extends Controller
 
         $user->token = Str::uuid()->toString();
         $user->save();
+
+        return new UserResource($user);
+    }
+
+    public function get_current_user(): UserResource
+    {
+        $user = Auth::user();
 
         return new UserResource($user);
     }
