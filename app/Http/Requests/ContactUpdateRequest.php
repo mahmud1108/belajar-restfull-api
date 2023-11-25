@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ContactCreateRequest extends FormRequest
+class ContactUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,10 @@ class ContactCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'max:20', 'min:5'],
-            'last_name' => ['nullable', 'max:20'],
-            'email' => ['nullable', 'max:50', 'email'],
-            'phone' => ['nullable', 'max:50'],
+            'first_name' => ['min:4', 'required'],
+            'last_name' => ['min:4', 'nullable'],
+            'email' => ['email', 'nullable'],
+            'phone' => ['min:4', 'nullable'],
         ];
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Http\Request;
@@ -23,4 +24,10 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     Route::get('user/current', [UserController::class, 'get_current_user']);
     Route::patch('user/current', [UserController::class, 'update']);
     Route::delete('user/logout', [UserController::class, 'logout']);
+
+    Route::post('/contact', [ContactController::class, 'create']);
+    // yang bisa dimasukan menjadi id hanya number 0 - 9
+    Route::get('/contact/{id}', [ContactController::class, 'get'])->where('id', '[0-9]+');
+    Route::put('/contact/{id}', [ContactController::class, 'update'])->where('id', '[0-9]+');
+    Route::delete('/contact/{id}', [ContactController::class, 'delete'])->where('id', '[0-9]+');
 });
