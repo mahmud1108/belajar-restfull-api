@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Models\Contact;
 use Database\Seeders\ContactSeeder;
 use Database\Seeders\DoubleUserSeeder;
+use Database\Seeders\SearchSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Log;
+use PhpParser\Node\Expr\Cast\Double;
 use Tests\TestCase;
 
 class ContactTest extends TestCase
@@ -323,5 +326,111 @@ class ContactTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    public function testSearchByFirstName()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?name=first_name', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        // untuk mengecek apakah data yang didapatkan dari response adalah 10 atau bukan
+        // kenapa 10? lihat pada ContactController method search bagian $contacts->paginate
+        // untuk mengetahui array key silahkan uncomment code dibawah ini
+        // dd($response);
+
+        // cara baca : hasil yang diharapkan adalah 10, 10 didapatkan dari count($response['data'])
+        self::assertEquals(10, count($response['data']));
+
+        // melihat apakah jumlah data yang ada di db adalah 20
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchByLastName()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?name=last_name', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchByEmail()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?email=test', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchByPhone()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?phone=123466766', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchNotFound()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?name=tidak ada', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        self::assertEquals(0, count($response['data']));
+        self::assertEquals(0, $response['meta']['total']);
+    }
+
+    public function testSearchother()
+    {
+        $this->seed([DoubleUserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?name=first_name', headers: [
+            'Authorization' => 'salah'
+        ])->assertStatus(401)
+            ->assertJson(
+                [
+                    'errors' => [
+                        'message' => [
+                            'Unauthorized'
+                        ]
+                    ]
+                ]
+            );
+    }
+
+    public function testSearchWithPageAndSize()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contact?size=5&page=2', headers: [
+            'Authorization' => 'admin'
+        ])->assertStatus(200)
+            ->json();
+
+        self::assertEquals(5, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(2, $response['meta']['current_page']);
+        self::assertEquals(5, $response['meta']['per_page']);
     }
 }

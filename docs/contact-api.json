@@ -90,6 +90,10 @@
                         "in": "query"
                     },
                     {
+                        "name": "last_name",
+                        "in": "query"
+                    },
+                    {
                         "name": "phone",
                         "in": "query"
                     },

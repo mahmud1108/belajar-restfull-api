@@ -26,6 +26,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function () {
     Route::delete('user/logout', [UserController::class, 'logout']);
 
     Route::post('/contact', [ContactController::class, 'create']);
+    Route::get('/contact', [ContactController::class, 'search']);
     // yang bisa dimasukan menjadi id hanya number 0 - 9
     Route::get('/contact/{id}', [ContactController::class, 'get'])->where('id', '[0-9]+');
     Route::put('/contact/{id}', [ContactController::class, 'update'])->where('id', '[0-9]+');
