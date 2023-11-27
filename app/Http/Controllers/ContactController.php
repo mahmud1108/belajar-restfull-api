@@ -14,6 +14,23 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
+
+    private function getContact($user, $id)
+    {
+        $contact = Contact::where('user_id', $user)->where('id', $id)->first();
+        if (!$contact) {
+            throw new HttpResponseException(response([
+                'errors' => [
+                    'message' => [
+                        'Not found'
+                    ]
+                ]
+            ], 404));
+        }
+
+        return $contact;
+    }
+
     public function create(ContactCreateRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -27,34 +44,14 @@ class ContactController extends Controller
 
     public function get($id)
     {
-        $contact = Contact::where('id', $id)->where('user_id', auth()->user()->id)->first();
-
-        if (!$contact) {
-            throw new HttpResponseException(response()->json([
-                'errors' => [
-                    'message' => [
-                        'Not found'
-                    ]
-                ]
-            ])->setStatusCode(404));
-        }
+        $contact = $this->getContact(auth()->user()->id, $id);
 
         return new ContactResource($contact);
     }
 
     public function update($id, ContactUpdateRequest $request)
     {
-        $contact = Contact::where('id', $id)->where('user_id', auth()->user()->id)->first();
-
-        if (!$contact) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found'
-                    ]
-                ]
-            ])->setStatusCode(404));
-        }
+        $contact = $this->getContact(auth()->user()->id, $id);
 
         $data = $request->validated();
         $contact->fill($data);
@@ -65,17 +62,7 @@ class ContactController extends Controller
 
     public function delete($id)
     {
-        $contact = Contact::where('user_id', auth()->user()->id)->where('id', $id)->first();
-        if (!$contact) {
-            throw new HttpResponseException(response([
-                'errors' => [
-                    'message' => [
-                        'Not found'
-                    ]
-                ]
-            ], 404));
-        }
-
+        $contact = $this->getContact(auth()->user()->id, $id);
         $contact->delete();
 
         return response()->json([
